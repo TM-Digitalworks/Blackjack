@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Royal Blackjack — Casino Table</title>
+  <style>
+/* =========================================
+   Royal Blackjack — Stylesheet
+   Written by a learning web dev.
+   Sections:
+     1. Reset & base
+     2. Loading screen
+     3. Top bar
+     4. Table
+     5. Cards
+     6. Chips & controls
+     7. Buttons
+     8. Status banner
+     9. Modal
+    10. Animations
+    11. Responsive
+   ========================================= */
+
+/* ---------- 1. Reset & base ---------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: "Georgia", "Times New Roman", serif;
+  color: #f3e8c8;
+  background:
+    radial-gradient(ellipse at center, #1d2a1d 0%, #0b140b 70%, #050805 100%);
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- 2. Loading screen ---------- */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  background: #0b140b;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.6s ease;
+}
+
+.loading-screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-inner {
+  text-align: center;
+}
+
+.loading-logo {
+  font-size: 3rem;
+  letter-spacing: 0.6rem;
+  color: #d4af37;
+  margin-bottom: 1rem;
+  animation: float 2.4s ease-in-out infinite;
+}
+
+.loading-title {
+  font-size: 2.6rem;
+  color: #f3e8c8;
+  letter-spacing: 0.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.loading-bar {
+  width: 260px;
+  height: 8px;
+  background: #1f2a1f;
+  border: 1px solid #d4af37;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 0 auto 0.8rem;
+}
+
+.loading-fill {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #b8860b, #f5deb3, #d4af37);
+  animation: loadFill 1.6s ease forwards;
+}
+
+.loading-text {
+  color: #d4af37;
+  letter-spacing: 0.1rem;
+  font-style: italic;
+}
+
+@keyframes loadFill {
+  to { width: 100%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ---------- 3. Top bar ---------- */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 1.5rem;
+  background: linear-gradient(180deg, #1a1206 0%, #0d0903 100%);
+  border-bottom: 2px solid #d4af37;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+  z-index: 5;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.4rem;
+  letter-spacing: 0.15rem;
+  color: #d4af37;
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+}
+
+.brand-suit { font-size: 1.6rem; }
+.brand-suit.red { color: #c0392b; }
+
+.stats {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2rem;
+  color: #b59657;
+}
+
+.stat-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #f3e8c8;
+}
+
+.mute-btn {
+  background: transparent;
+  border: 1px solid #d4af37;
+  color: #d4af37;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.mute-btn:hover {
+  background: #d4af37;
+  color: #0b140b;
+}
+
+/* ---------- 4. Table ---------- */
+.table {
+  flex: 1;
+  position: relative;
+  margin: 1rem;
+  border-radius: 50% / 18%;
+  background:
+    radial-gradient(ellipse at center, #2f6a3a 0%, #1f4a28 60%, #103018 100%);
+  border: 10px solid #4a2c12;
+  box-shadow:
+    inset 0 0 80px rgba(0,0,0,0.6),
+    0 0 60px rgba(0,0,0,0.8),
+    0 0 0 4px #d4af37;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  min-height: 0;
+}
+
+.table::before {
+  /* subtle felt texture */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-radial-gradient(circle, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 4px);
+  pointer-events: none;
+}
+
+.dealer-area, .player-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 1;
+}
+
+.player-area { flex-direction: column-reverse; }
+
+.player-label {
+  font-size: 1rem;
+  letter-spacing: 0.2rem;
+  text-transform: uppercase;
+  color: #f3e8c8;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+}
+
+.hand-value {
+  background: rgba(0,0,0,0.5);
+  border: 1px solid #d4af37;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  min-width: 36px;
+  text-align: center;
+  color: #d4af37;
+}
+
+.cards {
+  display: flex;
+  gap: -20px;
+  min-height: 130px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.table-center {
+  text-align: center;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.table-text {
+  font-size: 1.3rem;
+  letter-spacing: 0.4rem;
+  color: rgba(243, 232, 200, 0.45);
+  text-transform: uppercase;
+  font-style: italic;
+}
+
+.table-subtext {
+  font-size: 0.8rem;
+  color: rgba(243, 232, 200, 0.3);
+  letter-spacing: 0.2rem;
+  margin-top: 0.4rem;
+}
+
+/* ---------- 5. Cards ---------- */
+.card {
+  width: 80px;
+  height: 116px;
+  background: #fafafa;
+  border-radius: 8px;
+  margin: 0 -10px;
+  position: relative;
+  box-shadow:
+    0 4px 8px rgba(0,0,0,0.5),
+    0 0 0 1px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 6px 8px;
+  font-family: "Georgia", serif;
+  color: #111;
+  animation: dealIn 0.45s ease both;
+  transform-origin: center;
+}
+
+.card.red { color: #c0392b; }
+
+.card .corner {
+  font-size: 0.95rem;
+  font-weight: bold;
+  line-height: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.card .corner.bottom {
+  align-self: flex-end;
+  transform: rotate(180deg);
+}
+
+.card .pip {
+  font-size: 2.2rem;
+  text-align: center;
+  align-self: center;
+}
+
+/* Back of the card (used for dealer hole card) */
+.card.back {
+  background:
+    repeating-linear-gradient(45deg, #6a0d12 0 10px, #8a141a 10px 20px);
+  border: 3px solid #d4af37;
+}
+
+.card.back::after {
+  content: "\2660";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;
+  color: #d4af37;
+  text-shadow: 0 0 6px rgba(0,0,0,0.5);
+}
+
+.card.back > * { display: none; }
+
+/* Winning glow */
+.card.win {
+  box-shadow:
+    0 0 0 2px #d4af37,
+    0 0 20px #d4af37,
+    0 4px 8px rgba(0,0,0,0.5);
+  animation: winPulse 1.2s ease-in-out infinite;
+}
+
+.card.flipping {
+  animation: flip 0.6s ease both;
+}
+
+@keyframes dealIn {
+  from {
+    transform: translate(300px, -200px) rotate(-30deg);
+    opacity: 0;
+  }
+  to {
+    transform: translate(0,0) rotate(0);
+    opacity: 1;
+  }
+}
+
+@keyframes flip {
+  0% { transform: rotateY(0); }
+  50% { transform: rotateY(90deg); }
+  100% { transform: rotateY(0); }
+}
+
+@keyframes winPulse {
+  0%, 100% { box-shadow: 0 0 0 2px #d4af37, 0 0 20px #d4af37; }
+  50% { box-shadow: 0 0 0 3px #f5deb3, 0 0 32px #f5deb3; }
+}
+
+/* ---------- 6. Chips & controls ---------- */
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 1.5rem 1rem;
+  gap: 1rem;
+  background: linear-gradient(0deg, #0d0903 0%, #1a1206 100%);
+  border-top: 2px solid #d4af37;
+  flex-wrap: wrap;
+}
+
+.chips {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.chip {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 4px dashed #fff;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1.05rem;
+  color: #fff;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+  box-shadow:
+    inset 0 0 0 6px rgba(0,0,0,0.2),
+    0 4px 8px rgba(0,0,0,0.6);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+}
+
+.chip:hover {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow:
+    inset 0 0 0 6px rgba(0,0,0,0.2),
+    0 8px 14px rgba(0,0,0,0.8);
+}
+
+.chip:active { transform: translateY(0) scale(0.98); }
+
+.chip-5    { background: radial-gradient(circle at 30% 30%, #6abf6a, #2e7d32); }
+.chip-25   { background: radial-gradient(circle at 30% 30%, #5aa2e0, #1565c0); }
+.chip-100  { background: radial-gradient(circle at 30% 30%, #2c2c2c, #000); border-color: #d4af37; color: #d4af37; }
+.chip-500  { background: radial-gradient(circle at 30% 30%, #e57373, #a30000); }
+
+.chip.flying {
+  animation: chipFly 0.5s ease forwards;
+}
+
+@keyframes chipFly {
+  0% { transform: translate(0,0) scale(1); }
+  50% { transform: translate(0,-60px) scale(1.1); }
+  100% { transform: translate(0,-30px) scale(0.6); opacity: 0.4; }
+}
+
+/* ---------- 7. Buttons ---------- */
+.buttons {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 0.7rem 1.2rem;
+  font-family: "Georgia", serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.12rem;
+  text-transform: uppercase;
+  color: #f3e8c8;
+  background: linear-gradient(180deg, #2a2a2a, #111);
+  border: 2px solid #d4af37;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+}
+
+.btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #3a3a3a, #222);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.7);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
+.btn-primary {
+  background: linear-gradient(180deg, #d4af37, #8a6d1c);
+  color: #1a1206;
+  border-color: #f5deb3;
+  font-weight: bold;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #f5deb3, #d4af37);
+}
+
+.btn-secondary {
+  border-color: #7a7a7a;
+  color: #cfcfcf;
+}
+
+/* ---------- 8. Status banner ---------- */
+.status-banner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0.6);
+  background: rgba(0,0,0,0.78);
+  border: 3px solid #d4af37;
+  padding: 1rem 2.5rem;
+  border-radius: 12px;
+  font-size: 2rem;
+  letter-spacing: 0.4rem;
+  text-transform: uppercase;
+  color: #d4af37;
+  text-shadow: 0 0 12px rgba(212, 175, 55, 0.6);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  white-space: nowrap;
+}
+
+.status-banner.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.status-banner.win { color: #ffe27a; border-color: #ffe27a; }
+.status-banner.lose { color: #ff8a8a; border-color: #c0392b; }
+.status-banner.push { color: #f3e8c8; }
+
+/* ---------- 9. Modal ---------- */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  transition: opacity 0.3s ease;
+}
+
+.modal.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.modal-inner {
+  background: linear-gradient(180deg, #1a1206, #0d0903);
+  border: 2px solid #d4af37;
+  border-radius: 12px;
+  padding: 1.8rem 2rem;
+  min-width: 320px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.8);
+  text-align: center;
+}
+
+.modal-inner h2 {
+  color: #d4af37;
+  margin-bottom: 1rem;
+  letter-spacing: 0.2rem;
+}
+
+.stats-list {
+  list-style: none;
+  margin-bottom: 1.4rem;
+}
+
+.stats-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed rgba(212, 175, 55, 0.3);
+}
+
+.stats-list li span:first-child { color: #b59657; }
+.stats-list li span:last-child { color: #f3e8c8; font-weight: bold; }
+
+/* ---------- 10. Misc animations ---------- */
+.fade-out { animation: fadeOut 0.4s ease forwards; }
+@keyframes fadeOut { to { opacity: 0; } }
+
+/* ---------- 11. Responsive ---------- */
+@media (max-width: 720px) {
+  .top-bar { padding: 0.6rem 0.8rem; }
+  .brand-name { display: none; }
+  .table { margin: 0.4rem; padding: 0.8rem; border-radius: 30px / 30px; }
+  .card { width: 60px; height: 88px; padding: 4px 5px; }
+  .card .pip { font-size: 1.6rem; }
+  .table-text { font-size: 0.9rem; letter-spacing: 0.2rem; }
+  .table-subtext { font-size: 0.65rem; }
+  .controls { padding: 0.6rem; gap: 0.5rem; justify-content: center; }
+  .chip { width: 52px; height: 52px; font-size: 0.9rem; }
+  .btn { padding: 0.55rem 0.8rem; font-size: 0.8rem; letter-spacing: 0.06rem; }
+  .buttons { justify-content: center; width: 100%; }
+  .status-banner { font-size: 1.3rem; padding: 0.7rem 1.2rem; letter-spacing: 0.25rem; }
+}
+  </style>
+</head>
+<body>
+
+  <!-- Loading screen shown while the page boots up -->
+  <div id="loadingScreen" class="loading-screen">
+    <div class="loading-inner">
+      <div class="loading-logo">&#9824; &#9829; &#9830; &#9827;</div>
+      <h1 class="loading-title">Royal Blackjack</h1>
+      <div class="loading-bar"><div class="loading-fill"></div></div>
+      <p class="loading-text">Shuffling the deck...</p>
+    </div>
+  </div>
+
+  <!-- Top bar with bankroll, stats and mute button -->
+  <header class="top-bar">
+    <div class="brand">
+      <span class="brand-suit red">&#9829;</span>
+      <span class="brand-name">Royal Blackjack</span>
+      <span class="brand-suit">&#9824;</span>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span class="stat-label">Bankroll</span><span class="stat-value" id="bankrollDisplay">$1000</span></div>
+      <div class="stat"><span class="stat-label">Bet</span><span class="stat-value" id="betDisplay">$0</span></div>
+      <button id="muteBtn" class="mute-btn" title="Mute / Unmute">&#128266;</button>
+      <button id="statsBtn" class="mute-btn" title="Statistics">&#128202;</button>
+    </div>
+  </header>
+
+  <!-- The casino table -->
+  <main class="table">
+
+    <!-- Status banner in the middle of the table -->
+    <div id="statusBanner" class="status-banner"></div>
+
+    <!-- Dealer area at the top -->
+    <section class="dealer-area">
+      <div class="player-label">
+        <span>Dealer</span>
+        <span class="hand-value" id="dealerValue"></span>
+      </div>
+      <div class="cards" id="dealerCards"></div>
+    </section>
+
+    <!-- Center text with table rules -->
+    <div class="table-center">
+      <div class="table-text">BLACKJACK PAYS 3 TO 2</div>
+      <div class="table-subtext">Dealer must hit on 16 and stand on all 17s</div>
+    </div>
+
+    <!-- Player area at the bottom -->
+    <section class="player-area">
+      <div class="cards" id="playerCards"></div>
+      <div class="player-label">
+        <span>Player</span>
+        <span class="hand-value" id="playerValue"></span>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom controls: chips, bet area and buttons -->
+  <footer class="controls">
+
+    <div class="chips" id="chipTray">
+      <button class="chip chip-5" data-value="5">5</button>
+      <button class="chip chip-25" data-value="25">25</button>
+      <button class="chip chip-100" data-value="100">100</button>
+      <button class="chip chip-500" data-value="500">500</button>
+    </div>
+
+    <div class="buttons">
+      <button id="dealBtn" class="btn btn-primary">Deal</button>
+      <button id="hitBtn" class="btn">Hit</button>
+      <button id="standBtn" class="btn">Stand</button>
+      <button id="doubleBtn" class="btn">Double</button>
+      <button id="clearBtn" class="btn btn-secondary">Clear Bet</button>
+      <button id="newHandBtn" class="btn btn-secondary">New Hand</button>
+    </div>
+  </footer>
+
+  <!-- Statistics popup -->
+  <div id="statsModal" class="modal hidden">
+    <div class="modal-inner">
+      <h2>Statistics</h2>
+      <ul class="stats-list">
+        <li><span>Hands played</span><span id="sHands">0</span></li>
+        <li><span>Wins</span><span id="sWins">0</span></li>
+        <li><span>Losses</span><span id="sLosses">0</span></li>
+        <li><span>Pushes</span><span id="sPushes">0</span></li>
+        <li><span>Biggest win</span><span id="sBiggest">$0</span></li>
+        <li><span>Current bankroll</span><span id="sBankroll">$1000</span></li>
+      </ul>
+      <button id="closeStatsBtn" class="btn btn-primary">Close</button>
+    </div>
+  </div>
+
+  <script>
+/* =========================================================
+   Royal Blackjack — Game Logic
+   A learning-friendly implementation.
+
+   Sections:
+     1. Variables / state
+     2. Sound helpers
+     3. Deck creation & shuffle
+     4. Card dealing & rendering
+     5. Hand value calculation
+     6. Betting system
+     7. Player actions (hit/stand/double)
+     8. Dealer logic / AI
+     9. Round resolution & payouts
+    10. UI updates
+    11. Stats panel
+    12. Event listeners / startup
+   ========================================================= */
+
+
+/* ---------- 1. Variables / state ---------- */
+
+// Bankroll the player starts with
+let bankroll = 1000;
+let currentBet = 0;
+
+// Deck and hands
+let deck = [];
+let playerHand = [];
+let dealerHand = [];
+
+// Game state flags
+let roundInProgress = false;   // true between Deal and round end
+let playerTurnOver = false;
+let busyAnimating = false;     // prevents button spam
+let canDouble = false;
+
+// Statistics tracked across the session
+let stats = {
+  hands: 0,
+  wins: 0,
+  losses: 0,
+  pushes: 0,
+  biggestWin: 0
+};
+
+// Sound on/off
+let soundOn = true;
+
+// Card suits and ranks
+const SUITS = ["\u2660", "\u2665", "\u2666", "\u2663"];
+const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+
+// DOM references (filled in on load)
+const $ = (id) => document.getElementById(id);
+
+
+/* ---------- 2. Sound helpers ---------- */
+// We use the WebAudio API to make little sounds without external files.
+
+let audioCtx = null;
+function ensureAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch (e) { audioCtx = null; }
+  }
+}
+
+function playTone(freq, duration, type) {
+  if (!soundOn) return;
+  ensureAudio();
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type || "sine";
+  osc.frequency.value = freq;
+  gain.gain.value = 0.06;
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start();
+  gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+  osc.stop(audioCtx.currentTime + duration);
+}
+
+function soundDeal()  { playTone(420, 0.08, "square"); }
+function soundChip()  { playTone(900, 0.05, "triangle"); setTimeout(() => playTone(600, 0.05, "triangle"), 60); }
+function soundClick() { playTone(300, 0.04, "square"); }
+function soundWin()   { [523, 659, 784, 1046].forEach((f,i) => setTimeout(() => playTone(f, 0.18, "triangle"), i*100)); }
+function soundLose()  { [400, 300, 200].forEach((f,i) => setTimeout(() => playTone(f, 0.22, "sawtooth"), i*140)); }
+
+
+/* ---------- 3. Deck creation & shuffle ---------- */
+
+// Build a fresh 52-card deck (we'll use one deck and reshuffle when low).
+function buildDeck() {
+  const cards = [];
+  for (let s = 0; s < SUITS.length; s++) {
+    for (let r = 0; r < RANKS.length; r++) {
+      cards.push({ suit: SUITS[s], rank: RANKS[r] });
+    }
+  }
+  return cards;
+}
+
+// Fisher-Yates shuffle. Simple and fair.
+function shuffle(cards) {
+  for (let i = cards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = cards[i];
+    cards[i] = cards[j];
+    cards[j] = temp;
+  }
+  return cards;
+}
+
+function resetDeckIfLow() {
+  // If less than 15 cards left, build a fresh shuffled deck.
+  if (deck.length < 15) {
+    deck = shuffle(buildDeck());
+  }
+}
+
+
+/* ---------- 4. Card dealing & rendering ---------- */
+
+// Draw a single card off the top of the deck.
+function drawCard() {
+  resetDeckIfLow();
+  return deck.pop();
+}
+
+// Build the HTML element for a card (or its back).
+function makeCardElement(card, faceDown) {
+  const el = document.createElement("div");
+  el.className = "card";
+  if (faceDown) {
+    el.classList.add("back");
+    return el;
+  }
+  const isRed = card.suit === "\u2665" || card.suit === "\u2666";
+  if (isRed) el.classList.add("red");
+
+  const topCorner = document.createElement("div");
+  topCorner.className = "corner";
+  topCorner.innerHTML = "<span>" + card.rank + "</span><span>" + card.suit + "</span>";
+
+  const pip = document.createElement("div");
+  pip.className = "pip";
+  pip.textContent = card.suit;
+
+  const botCorner = document.createElement("div");
+  botCorner.className = "corner bottom";
+  botCorner.innerHTML = "<span>" + card.rank + "</span><span>" + card.suit + "</span>";
+
+  el.appendChild(topCorner);
+  el.appendChild(pip);
+  el.appendChild(botCorner);
+  return el;
+}
+
+// Add a card to a hand and render it, with a small delay for animation.
+function dealCardTo(who, faceDown) {
+  return new Promise((resolve) => {
+    const card = drawCard();
+    if (who === "player") playerHand.push(card);
+    else dealerHand.push({ suit: card.suit, rank: card.rank, hidden: !!faceDown });
+
+    const container = who === "player" ? $("playerCards") : $("dealerCards");
+    const el = makeCardElement(card, faceDown);
+    container.appendChild(el);
+    soundDeal();
+
+    setTimeout(() => {
+      updateHandValues();
+      resolve();
+    }, 350);
+  });
+}
+
+// Re-render dealer cards (used to flip the hidden card).
+function renderDealerCards(revealAll) {
+  const container = $("dealerCards");
+  container.innerHTML = "";
+  for (let i = 0; i < dealerHand.length; i++) {
+    const c = dealerHand[i];
+    const hidden = c.hidden && !revealAll;
+    const el = makeCardElement(c, hidden);
+    if (!hidden && c.hidden) {
+      // This is the flip reveal
+      el.classList.add("flipping");
+      c.hidden = false;
+    }
+    container.appendChild(el);
+  }
+}
+
+
+/* ---------- 5. Hand value calculation ---------- */
+
+// Returns the best score considering aces.
+function handValue(hand, ignoreHidden) {
+  let total = 0;
+  let aces = 0;
+  for (let i = 0; i < hand.length; i++) {
+    const c = hand[i];
+    if (ignoreHidden && c.hidden) continue;
+    if (c.rank === "A") {
+      aces += 1;
+      total += 11;
+    } else if (c.rank === "K" || c.rank === "Q" || c.rank === "J") {
+      total += 10;
+    } else {
+      total += parseInt(c.rank, 10);
+    }
+  }
+  // Down-grade aces from 11 to 1 if we're over 21.
+  while (total > 21 && aces > 0) {
+    total -= 10;
+    aces -= 1;
+  }
+  return total;
+}
+
+function isBlackjack(hand) {
+  return hand.length === 2 && handValue(hand) === 21;
+}
+
+
+/* ---------- 6. Betting system ---------- */
+
+function addToBet(amount) {
+  if (roundInProgress) return;
+  if (amount > bankroll) {
+    flashBanner("Not enough!", "lose");
+    return;
+  }
+  currentBet += amount;
+  bankroll -= amount;
+  soundChip();
+  updateUI();
+}
+
+function clearBet() {
+  if (roundInProgress) return;
+  bankroll += currentBet;
+  currentBet = 0;
+  soundClick();
+  updateUI();
+}
+
+
+/* ---------- 7. Player actions ---------- */
+
+async function startDeal() {
+  if (roundInProgress || busyAnimating) return;
+  if (currentBet <= 0) {
+    flashBanner("Place a bet first", "lose");
+    return;
+  }
+
+  // Clear table from previous round
+  $("playerCards").innerHTML = "";
+  $("dealerCards").innerHTML = "";
+  hideBanner();
+  playerHand = [];
+  dealerHand = [];
+  playerTurnOver = false;
+  roundInProgress = true;
+  busyAnimating = true;
+  resetDeckIfLow();
+
+  // Deal in the traditional order: player, dealer, player, dealer(hole)
+  await dealCardTo("player", false);
+  await dealCardTo("dealer", false);
+  await dealCardTo("player", false);
+  await dealCardTo("dealer", true);
+
+  // Double down is allowed only on the first two cards and if you can afford it
+  canDouble = bankroll >= currentBet;
+
+  busyAnimating = false;
+  updateUI();
+
+  // Check for immediate blackjack
+  const playerBJ = isBlackjack(playerHand);
+  const dealerBJ = isBlackjack(dealerHand);
+  if (playerBJ || dealerBJ) {
+    await endRound();
+  }
+}
+
+async function playerHit() {
+  if (!roundInProgress || playerTurnOver || busyAnimating) return;
+  busyAnimating = true;
+  canDouble = false;
+  await dealCardTo("player", false);
+  busyAnimating = false;
+
+  const v = handValue(playerHand);
+  if (v >= 21) {
+    playerTurnOver = true;
+    await endRound();
+  }
+  updateUI();
+}
+
+async function playerStand() {
+  if (!roundInProgress || playerTurnOver || busyAnimating) return;
+  playerTurnOver = true;
+  updateUI();
+  await dealerPlay();
+  await endRound();
+}
+
+async function playerDouble() {
+  if (!roundInProgress || playerTurnOver || busyAnimating) return;
+  if (playerHand.length !== 2) return;
+  if (bankroll < currentBet) return;
+
+  busyAnimating = true;
+  bankroll -= currentBet;
+  currentBet *= 2;
+  canDouble = false;
+  soundChip();
+  updateUI();
+
+  await dealCardTo("player", false);
+  playerTurnOver = true;
+  busyAnimating = false;
+
+  if (handValue(playerHand) > 21) {
+    await endRound();
+  } else {
+    await dealerPlay();
+    await endRound();
+  }
+}
+
+
+/* ---------- 8. Dealer logic / AI ---------- */
+
+async function dealerPlay() {
+  busyAnimating = true;
+  // Reveal hidden card with a small flip
+  renderDealerCards(true);
+  updateHandValues();
+  await wait(550);
+
+  // Hit on 16 or less, stand on 17 or more (stand on all 17s).
+  while (handValue(dealerHand) < 17) {
+    await dealCardTo("dealer", false);
+    await wait(400);
+  }
+  busyAnimating = false;
+}
+
+
+/* ---------- 9. Round resolution & payouts ---------- */
+
+async function endRound() {
+  // Always make sure the dealer card is shown at the end
+  for (let i = 0; i < dealerHand.length; i++) dealerHand[i].hidden = false;
+  renderDealerCards(true);
+  updateHandValues();
+
+  const pv = handValue(playerHand);
+  const dv = handValue(dealerHand);
+  const playerBJ = isBlackjack(playerHand);
+  const dealerBJ = isBlackjack(dealerHand);
+
+  let result = "";    // "win" | "lose" | "push" | "blackjack"
+  let payout = 0;     // amount to add to bankroll (includes original bet)
+  let message = "";
+
+  if (pv > 21) {
+    result = "lose"; message = "Bust!"; payout = 0;
+  } else if (playerBJ && !dealerBJ) {
+    result = "blackjack"; message = "Blackjack!"; payout = currentBet + Math.floor(currentBet * 1.5);
+  } else if (dealerBJ && !playerBJ) {
+    result = "lose"; message = "Dealer Blackjack"; payout = 0;
+  } else if (playerBJ && dealerBJ) {
+    result = "push"; message = "Push"; payout = currentBet;
+  } else if (dv > 21) {
+    result = "win"; message = "Dealer Busts!"; payout = currentBet * 2;
+  } else if (pv > dv) {
+    result = "win"; message = "Player Wins"; payout = currentBet * 2;
+  } else if (pv < dv) {
+    result = "lose"; message = "Dealer Wins"; payout = 0;
+  } else {
+    result = "push"; message = "Push"; payout = currentBet;
+  }
+
+  // Apply payout
+  const net = payout - currentBet;   // profit (or loss)
+  bankroll += payout;
+
+  // Stats
+  stats.hands += 1;
+  if (result === "win" || result === "blackjack") {
+    stats.wins += 1;
+    if (net > stats.biggestWin) stats.biggestWin = net;
+  } else if (result === "lose") {
+    stats.losses += 1;
+  } else {
+    stats.pushes += 1;
+  }
+
+  // Show banner & sounds
+  const bannerClass = (result === "push") ? "push" :
+                      (result === "lose") ? "lose" : "win";
+  flashBanner(message, bannerClass);
+  if (result === "win" || result === "blackjack") {
+    soundWin();
+    addWinGlow();
+  } else if (result === "lose") {
+    soundLose();
+  }
+
+  // Reset for next round
+  currentBet = 0;
+  roundInProgress = false;
+  playerTurnOver = false;
+  busyAnimating = false;
+  canDouble = false;
+  updateUI();
+
+  // Out of money? Offer a top-up.
+  if (bankroll <= 0) {
+    await wait(1500);
+    flashBanner("You're broke \u2014 here's $500", "win");
+    bankroll = 500;
+    updateUI();
+  }
+}
+
+function addWinGlow() {
+  const cards = document.querySelectorAll("#playerCards .card");
+  cards.forEach(c => c.classList.add("win"));
+}
+
+
+/* ---------- 10. UI updates ---------- */
+
+function updateUI() {
+  $("bankrollDisplay").textContent = "$" + bankroll;
+  $("betDisplay").textContent = "$" + currentBet;
+
+  // Button enable/disable logic
+  $("dealBtn").disabled    = roundInProgress || busyAnimating || currentBet <= 0;
+  $("hitBtn").disabled     = !roundInProgress || playerTurnOver || busyAnimating;
+  $("standBtn").disabled   = !roundInProgress || playerTurnOver || busyAnimating;
+  $("doubleBtn").disabled  = !roundInProgress || playerTurnOver || busyAnimating || !canDouble;
+  $("clearBtn").disabled   = roundInProgress || currentBet <= 0;
+  $("newHandBtn").disabled = roundInProgress || busyAnimating;
+
+  // Chips disabled while round is running
+  document.querySelectorAll(".chip").forEach(c => {
+    const val = parseInt(c.dataset.value, 10);
+    c.disabled = roundInProgress || val > bankroll;
+    c.style.opacity = c.disabled ? "0.4" : "1";
+  });
+}
+
+function updateHandValues() {
+  const pv = handValue(playerHand);
+  $("playerValue").textContent = pv > 0 ? pv : "";
+
+  // Dealer: hide value of hidden card until reveal
+  const dv = handValue(dealerHand, true);
+  $("dealerValue").textContent = dv > 0 ? dv : "";
+}
+
+function flashBanner(text, kind) {
+  const b = $("statusBanner");
+  b.className = "status-banner show";
+  if (kind) b.classList.add(kind);
+  b.textContent = text;
+}
+
+function hideBanner() {
+  const b = $("statusBanner");
+  b.className = "status-banner";
+  b.textContent = "";
+}
+
+
+/* ---------- 11. Stats panel ---------- */
+
+function openStats() {
+  $("sHands").textContent    = stats.hands;
+  $("sWins").textContent     = stats.wins;
+  $("sLosses").textContent   = stats.losses;
+  $("sPushes").textContent   = stats.pushes;
+  $("sBiggest").textContent  = "$" + stats.biggestWin;
+  $("sBankroll").textContent = "$" + bankroll;
+  $("statsModal").classList.remove("hidden");
+}
+
+function closeStats() {
+  $("statsModal").classList.add("hidden");
+}
+
+
+/* ---------- Small helper ---------- */
+function wait(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+
+/* ---------- 12. Event listeners / startup ---------- */
+
+window.addEventListener("load", () => {
+  // Hide loading screen after ~1.6s for that "shuffle" feel
+  setTimeout(() => {
+    $("loadingScreen").classList.add("hidden");
+  }, 1600);
+
+  // Build & shuffle the deck once
+  deck = shuffle(buildDeck());
+
+  // Chip clicks
+  document.querySelectorAll(".chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const value = parseInt(chip.dataset.value, 10);
+      addToBet(value);
+      chip.classList.add("flying");
+      setTimeout(() => chip.classList.remove("flying"), 500);
+    });
+  });
+
+  // Buttons
+  $("dealBtn").addEventListener("click", () => { soundClick(); startDeal(); });
+  $("hitBtn").addEventListener("click", () => { soundClick(); playerHit(); });
+  $("standBtn").addEventListener("click", () => { soundClick(); playerStand(); });
+  $("doubleBtn").addEventListener("click", () => { soundClick(); playerDouble(); });
+  $("clearBtn").addEventListener("click", () => { soundClick(); clearBet(); });
+  $("newHandBtn").addEventListener("click", () => {
+    if (roundInProgress) return;
+    soundClick();
+    $("playerCards").innerHTML = "";
+    $("dealerCards").innerHTML = "";
+    playerHand = [];
+    dealerHand = [];
+    hideBanner();
+    updateHandValues();
+    updateUI();
+  });
+
+  // Mute toggle
+  $("muteBtn").addEventListener("click", () => {
+    soundOn = !soundOn;
+    $("muteBtn").textContent = soundOn ? "\uD83D\uDD0A" : "\uD83D\uDD07";
+  });
+
+  // Stats modal
+  $("statsBtn").addEventListener("click", openStats);
+  $("closeStatsBtn").addEventListener("click", closeStats);
+
+  updateUI();
+});
+  </script>
+</body>
+</html>
